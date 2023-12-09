@@ -1,0 +1,296 @@
+Z_kiralama
+
+REPORT Z_KIRALAMA.
+TYPE-POOLS:vrm.
+DATA: G_id        type          vrm_id,
+      G_list      type          vrm_values,
+      G_value     LIKE LINE OF  G_list.
+DATA : s_sirket TYPE ZERD_KIR_SIRKET,
+       s_arac type ZERD_KIR_ARAC.
+
+selection-screen begin of block b20 with frame TITLE text-020.
+PARAMETERS: p_srktid type ZERD_KIR_SIRKET-SIRKET_ID.
+parameters: p_srktad type ZERD_KIR_SIRKET-SIRKET_AD .
+parameters: p_adres type ZERD_KIR_SIRKET-SIRKET_ADRES.
+parameters: p_vergi type ZERD_KIR_SIRKET-SIRKET_VERGI.
+
+ selection-screen:
+                pushbutton /75(20) text-001 user-command BUT_SAVE_SIRKET,
+                pushbutton /75(20) text-002 user-command BUT_GETIR_SIRKET,
+                pushbutton /75(20) text-003 user-command BUT_SIL_SIRKET.
+selection-screen end of block b20.
+
+ selection-screen begin of block b21 with frame TITLE text-021.
+ parameters: p_asrkid type ZERD_KIR_SIRKET-SIRKET_ID,
+             p_arcid TYPE ZERD_KIR_ARAC-ARAC_ID,
+             p_arctip Type Z_ARAC_TIP_DE as listbox visible length 15,
+             p_renk TYPE Z_ARAC_RENK_DE  as listbox visible length 15,
+             p_marka TYPE Z_ARAC_MRK_DE as listbox visible length 15.
+
+ selection-screen:
+                pushbutton /75(20) text-004 user-command BUT_SAVE_ARAC,
+                pushbutton /75(20) text-005 user-command BUT_GETIR_ARAC,
+                pushbutton /75(20) text-006 user-command BUT_SIL_ARAC.
+ selection-screen end of Block b21.
+  selection-screen begin of block b22 with frame TITLE text-022.
+PARAMETERS:
+             p_bastrh TYPE datum,
+             p_btstrh TYPE datum ,
+             p_arctp Type Z_ARAC_TIP_DE as listbox visible length 15.
+
+ selection-screen:
+
+   pushbutton /75(20) text-005 user-command BUT_GETIR_KAYIT.
+
+ PARAMETERS: p_karcid TYPE ZERD_KIR_ARAC-
+ARAC_ID as listbox visible length 15,
+             p_tckm_p TYPE Z_INSAN_TCKIMLIK_DE  as listbox visible length 1
+5.
+ selection-screen:
+                pushbutton /75(20) text-004 user-command BUT_SAVE_KAYIT.
+
+ selection-screen end of Block b22.
+INCLUDE Z_1_SIRKET.
+INCLUDE Z_2_ARAC.
+INCLUDE Z_3_KIRALAMA_KAYITLARI.
+Z_sirket
+
+tables: ZERD_KIR_SIRKET.
+CLASS Z_SIRKET DEFINITION ABSTRACT.
+PUBLIC SECTION.
+DATA : LS_SIRKET TYPE ZERD_KIR_SIRKET.
+&quot;1000 erdemir 2000 isdemir 3000 ersem 4000 ermaden 5000 erdemir mühendislik
+     METHODS:
+      SAVE_  ABSTRACT ,
+      GETIR_  ABSTRACT,
+      SIL_   ABSTRACT ,
+      save_SIRKET_2.
+&quot;BÜTÜN CLASSLAR ERİŞEBİLİR
+data:
+      SIRKET_ID TYPE ZERD_KIR_SIRKET-SIRKET_ID,
+      SIRKET_AD TYPE ZERD_KIR_SIRKET-SIRKET_AD ,
+      SIRKET_VERGI TYPE ZERD_KIR_SIRKET-SIRKET_VERGI,
+      SIRKET_ADRES TYPE ZERD_KIR_SIRKET-SIRKET_ADRES.
+
+ENDCLASS.
+DATA : GO_SIRKET TYPE REF TO Z_SIRKET.
+
+CLASS z_SIRKET IMPLEMENTATION.
+METHOD SAVE_SIRKET_2.
+ENDMETHOD.
+ENDCLASS.
+Z_arac
+
+CLASS Z_ARAC DEFINITION INHERITING FROM Z_SIRKET.
+PUBLIC SECTION.
+DATA: ARAC_ID type ZERD_KIR_ARAC-ARAC_ID,
+      ARAC_PLAKA  type ZERD_KIR_ARAC-ARAC_PLAKA,
+      ARAC_TIP  type Z_ARAC_TIP_DE,
+      ARAC_RENK type Z_ARAC_RENK_DE,
+      ARAC_MRK type Z_ARAC_MRK_DE.
+DATA : LS_ARAC TYPE ZERD_KIR_ARAC.
+     METHODS:
+      save_  REDEFINITION,
+      getir_ REDEFINITION,
+      sil_   REDEFINITION.
+     METHODS: SAVE_SIRKET_ ,
+              GETIR_SIRKET_ ,
+              SIL_SIRKET_ .
+ENDCLASS.
+DATA : GO_ARAC TYPE REF TO Z_ARAC.
+
+CLASS Z_ARAC IMPLEMENTATION.
+
+   METHOD  SAVE_SIRKET_ .
+   GO_ARAC-&gt;LS_SIRKET-SIRKET_ID     = p_srktid .
+   GO_ARAC-&gt;LS_SIRKET-SIRKET_AD        = p_srktad.
+   GO_ARAC-&gt;LS_SIRKET-SIRKET_VERGI          = p_vergi.
+   GO_ARAC-&gt;LS_SIRKET-SIRKET_ADRES     = p_adres.
+
+    MODIFY ZERD_KIR_SIRKET from GO_ARAC-&gt;LS_SIRKET.
+  ENDMETHOD.
+  METHOD  GETIR_SIRKET_.
+      SELECT SINGLE * FROM ZERD_KIR_SIRKET INTO @GO_ARAC-&gt;LS_SIRKET
+      where SIRKET_ID eq @p_srktid.
+   p_srktid   = GO_ARAC-&gt;LS_SIRKET-SIRKET_ID   .
+   p_srktad    =  GO_ARAC-&gt;LS_SIRKET-SIRKET_AD          .
+    p_vergi       = GO_ARAC-&gt;LS_SIRKET-SIRKET_VERGI .
+   p_adres   = GO_ARAC-&gt;LS_SIRKET-SIRKET_ADRES     .
+  ENDMETHOD.
+
+  METHOD  SIL_SIRKET_.
+    SELECT SINGLE * FROM ZERD_KIR_ARAC INTO @DATA(LOCAL_ARAC) WHERE SIRKET_
+ID EQ  @p_srktid.
+    IF LOCAL_ARAC IS INITIAL.
+     DELETE FROM ZERD_KIR_SIRKET WHERE SIRKET_ID eq @p_srktid.
+     WRITE: &#39;ZERD_PRS_STJ5_T tablosundan TC_KIMLIK =&#39;, p_srktid,
+           &#39; değeri silindi.&#39;.
+    ELSE.
+      WRITE: &#39;ZERD_PRS_STJ5_T tablosundan TC_KIMLIK =&#39;, p_srktid,
+           &#39; değeri silinemedi. Bu değer Personel Tablosunda yer almaktadır
+.&#39;.
+    ENDIF.
+
+ ENDMETHOD.
+  METHOD SAVE_.
+    GO_ARAC-&gt;LS_ARAC-ARAC_ID       = p_arcid.
+*    GO_ARAC-&gt;LS_ARAC-ARAC_PLAKA    = p_plka.
+    GO_ARAC-&gt;LS_ARAC-ARAC_TIP      =  p_arctip.
+    GO_ARAC-&gt;LS_ARAC-ARAC_RENK     = p_renk.
+    GO_ARAC-&gt;LS_ARAC-ARAC_MRK      = p_marka.
+    GO_ARAC-&gt;LS_SIRKET-SIRKET_ID   = p_asrkid.
+
+               MODIFY ZERD_KIR_ARAC from GO_ARAC-&gt;LS_ARAC.
+SELECT SINGLE * FROM ZERD_KIR_SIRKET INTO @DATA(LOCAL_SIRKET) WHERE SIRKET_
+ID   EQ  @p_arcid.
+  if LOCAL_SIRKET is not initial .
+    MODIFY ZERD_KIR_ARAC from GO_ARAC-&gt;LS_ARAC.
+endif.
+
+    IF sy-subrc  IS INITIAL.
+      WRITE: &#39;Veri başarıyla kaydedildi.&#39;.
+    ELSE.
+      WRITE: &#39;Veri kaydedilemedi.&#39;.
+    ENDIF.
+ ENDMETHOD.
+  METHOD GETIR_.
+    SELECT SINGLE * FROM ZERD_KIR_SIRKET  INTO @GO_ARAC-&gt;LS_SIRKET
+      where SIRKET_ID eq @p_arcid.
+    SELECT SINGLE * FROM ZERD_KIR_ARAC  INTO @GO_ARAC-
+&gt;LS_ARAC where SIRKET_ID eq @p_arcid.
+    p_arcid  = GO_ARAC-&gt;LS_ARAC-ARAC_ID .
+*    p_plka   = GO_ARAC-&gt;LS_ARAC-ARAC_PLAKA    .
+    p_arctip = GO_ARAC-&gt;LS_ARAC-ARAC_TIP      .
+    p_renk   = GO_ARAC-&gt;LS_ARAC-ARAC_RENK         .
+    p_marka  = GO_ARAC-&gt;LS_ARAC-ARAC_MRK         .
+    p_asrkid = GO_ARAC-&gt;LS_SIRKET-SIRKET_ID        .
+
+    p_srktid   = GO_ARAC-&gt;LS_SIRKET-SIRKET_ID   .
+    p_srktad   =  GO_ARAC-&gt;LS_SIRKET-SIRKET_AD          .
+    p_vergi    = GO_ARAC-&gt;LS_SIRKET-SIRKET_VERGI .
+    p_adres    = GO_ARAC-&gt;LS_SIRKET-SIRKET_ADRES     .
+
+  ENDMETHOD.
+  METHOD SIL_.
+     DELETE FROM ZERD_KIR_ARAC WHERE SIRKET_ID eq @p_arcid.
+
+  ENDMETHOD.
+ENDCLASS.
+Z_kayıt
+CLASS Z_KAYIT DEFINITION INHERITING FROM Z_ARAC.
+  PUBLIC SECTION.
+DATA: KIR_BAS_TARIHI type datum,
+      KIR_BIT_TARIHI  type datum,
+      KIRALAMA_ID  type ZERD_KIR_KAYIT-KIRALAMA_ID,
+      INSAN_TC  TYPE ZERD_KIR_KAYIT-INSAN_TC,
+      AD TYPE ZERD_INSAN_STJR2-AD.
+data: ls_personel TYPE ZERD_KIR_KAYIT.
+DATA : LS_KAYIT TYPE ZERD_KIR_KAYIT.
+DATA : ls_insan TYPE ZERD_INSAN_STJR2.
+     METHODS:
+      SAVE_  REDEFINITION,
+      GETIR_ REDEFINITION.
+ENDCLASS.
+DATA : GO_KAYIT TYPE REF TO Z_KAYIT,
+       LS_KAYIT TYPE ZERD_KIR_ARAC.
+CLASS Z_KAYIT IMPLEMENTATION.
+   METHOD GETIR_.
+*     SELECT SINGLE * FROM ZERD_KIR_KAYIT INTO @GO_KAYIT-&gt;LS_KAYIT
+*      where ARAC_ID eq @p_arcid.
+*
+*     IF KIR_BAS_TARIHI &lt; p_bastrh AND KIR_BIT_TARIHI &gt; p_btstrh NULL  .
+
+     SELECT *  FROM ZERD_KIR_KAYIT INTO TABLE @DATA(lt_kayit) WHERE
+
+             ( KIR_BAS_TARIHI LE @P_BASTRH AND KIR_BIT_TARIHI GE @P_BASTRH 
+) OR
+             ( KIR_BAS_TARIHI LE @P_BTSTRH AND KIR_BIT_TARIHI GE @P_BTSTRH 
+) OR
+             ( KIR_BAS_TARIHI GE @P_BASTRH AND KIR_BAS_TARIHI LE @P_BTSTRH 
+) OR
+             ( KIR_BIT_TARIHI GE @P_BASTRH AND KIR_BIT_TARIHI LE @P_BTSTRH 
+) OR
+             ( KIR_BAS_TARIHI GE @P_BASTRH AND KIR_BIT_TARIHI LE @P_BTSTRH 
+).
+
+     SELECT * FROM ZERD_KIR_ARAC INTO TABLE @DATA(lt_arac) .&quot;TÜM ARAÇLARIM
+     LOOP AT lt_kayit INTO DATA(ls_kayit).
+       DELETE lt_arac where ARAC_ID eq ls_kayit-ARAC_ID.
+     ENDLOOP.
+     LOOP AT lt_arac INTO DATA(ls_arac).
+        G_value-KEY = LS_ARAC-ARAC_ID.
+        G_value-TEXT = LS_ARAC-ARAC_PLAKA.
+        append  G_value to g_list.
+     ENDLOOP.
+    CALL FUNCTION &#39;VRM_SET_VALUES&#39;
+         EXPORTING id     = &#39;p_karcid&#39;
+                   values = g_list.
+
+   SELECT *  FROM ZERD_KIR_KAYIT INTO TABLE @DATA(lt_kayit2)  .
+       LOOP AT lt_kayit2 INTO data(ls_kayit2).
+          if  ls_kayit2-KIR_BAS_TARIHI LT P_BASTRH AND ls_kayit2-
+KIR_BIT_TARIHI LT P_BASTRH .
+            DELETE lt_kayit2 WHERE KIRALAMA_ID EQ  ls_kayit2-KIRALAMA_ID.
+          ENDIF.
+          if ls_kayit2-KIR_BAS_TARIHI GT P_BTSTRH AND ls_kayit2-
+KIR_BIT_TARIHI GT P_BTSTRH.
+            DELETE lt_kayit2 WHERE KIRALAMA_ID EQ  ls_kayit2-KIRALAMA_ID.
+          ENDIF.
+       ENDLOOP.
+   SELECT * FROM ZERD_PRS_STJ5_T INTO TABLE @DATA(lt_personel).
+   LOOP AT lt_kayit2 INTO ls_kayit2.
+     DELETE lt_personel where INSAN_TC eq ls_kayit2-INSAN_TC.
+   ENDLOOP.
+    clear g_list.
+     LOOP AT lt_personel INTO DATA(ls_personel).
+        G_value-KEY  = ls_personel-INSAN_TC.
+        G_value-TEXT = ls_personel-INSAN_TC.
+        append  G_value to g_list.
+     ENDLOOP.
+         CALL FUNCTION &#39;VRM_SET_VALUES&#39;
+         EXPORTING id = &#39;p_tckm_p&#39;
+
+                   values = g_list.
+
+&quot;        p_kirid =  GO_KAYIT-&gt;LS_KAYIT-KIRALAMA_ID.
+        p_karcid = GO_KAYIT-&gt;LS_KAYIT-ARAC_ID  .
+        p_bastrh   = GO_KAYIT-&gt;LS_KAYIT-KIR_BAS_TARIHI.
+        p_btstrh = GO_KAYIT-&gt;LS_KAYIT-KIR_BIT_TARIHI.
+        p_arctp = GO_KAYIT-&gt;LS_KAYIT-ARAC_TIP.
+        p_tckm_p = GO_KAYIT-&gt;ls_personel-INSAN_TC.
+   ENDMETHOD.
+   METHOD SAVE_.
+&quot;       GO_KAYIT-&gt;LS_KAYIT-KIRALAMA_ID = p_kirid.
+       GO_KAYIT-&gt;LS_KAYIT-ARAC_ID = p_karcid .
+       GO_KAYIT-&gt;LS_KAYIT-INSAN_TC = p_tckm_p.
+       GO_KAYIT-&gt;LS_KAYIT-KIR_BAS_TARIHI = p_bastrh .
+       GO_KAYIT-&gt;LS_KAYIT-KIR_BIT_TARIHI = p_btstrh  .
+       GO_KAYIT-&gt;LS_KAYIT-ARAC_TIP = p_arctp.
+        MODIFY ZERD_KIR_KAYIT from GO_KAYIT-&gt;LS_KAYIT.
+   ENDMETHOD.
+ ENDCLASS.
+ at SELECTION-SCREEN.
+
+CREATE OBJECT GO_ARAC.
+CREATE OBJECT GO_KAYIT.
+CASE SY-UCOMM.
+    WHEN &#39;BUT_SAVE_SIRKET&#39;.
+      GO_ARAC-&gt;SAVE_SIRKET_(  ).
+    WHEN &#39;BUT_GETIR_SIRKET&#39;.
+      GO_ARAC-&gt;GETIR_SIRKET_( ).
+    WHEN &#39;BUT_SIL_SIRKET&#39;.
+      GO_ARAC-&gt;SIL_SIRKET_( ).
+
+    WHEN &#39;BUT_SAVE_ARAC&#39;.
+        GO_ARAC-&gt;SAVE_( ).
+    WHEN &#39;BUT_GETIR_ARAC&#39;.
+     GO_ARAC-&gt;GETIR_( ).
+    WHEN &#39;BUT_SIL_ARAC&#39;.
+        GO_ARAC-&gt;SIL_( ).
+
+   WHEN &#39;BUT_SAVE_KAYIT&#39;.
+        GO_KAYIT-&gt;SAVE_( ).
+    WHEN &#39;BUT_GETIR_KAYIT&#39;.
+     GO_KAYIT-&gt;GETIR_( ).
+
+ENDCASE.

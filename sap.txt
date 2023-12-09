@@ -1,0 +1,40 @@
+REPORT Z_KIRALAMA.
+DATA : s_sirket TYPE ZERD_KIR_SIRKET,
+       s_arac type ZERD_KIR_ARAC.
+
+
+
+selection-screen begin of block b20 with frame TITLE text-020.
+PARAMETERS: p_srktid type ZERD_KIR_SIRKET-SIRKET_ID.
+parameters: p_srktad type ZERD_KIR_SIRKET-SIRKET_AD .
+parameters: p_adres type ZERD_KIR_SIRKET-SIRKET_ADRES.
+parameters: p_vergi type ZERD_KIR_SIRKET-SIRKET_VERGI.
+
+
+
+ selection-screen:
+                pushbutton /75(20) text-001 user-command BUT_SAVE_sirket,
+                pushbutton /75(20) text-002 user-command BUT_GETIR_sirket,
+                pushbutton /75(20) text-003 user-command BUT_SIL_sirket.
+selection-screen end of block b20.
+
+
+
+ selection-screen begin of block b21 with frame TITLE text-021.
+ parameters: p_asrkid type ZERD_KIR_SIRKET-SIRKET_ID,
+             p_arcid TYPE ZERD_KIR_ARAC-ARAC_ID,
+             p_plka TYPE ZERD_KIR_ARAC-ARAC_PLAKA,
+             p_arctip Type Z_ARAC_TIP_DE as listbox visible length 15,
+             p_renk TYPE Z_ARAC_RENK_DE  as listbox visible length 15,
+             p_marka TYPE Z_ARAC_MRK_DE as listbox visible length 15.
+
+
+ selection-screen:
+                pushbutton /75(20) text-001 user-command BUT_SAVE_arac,
+                pushbutton /75(20) text-002 user-command BUT_GETIR_arac,
+                pushbutton /75(20) text-003 user-command BUT_SIL_arac.
+ selection-screen end of Block b21.
+
+INCLUDE Z_001_SIRKET.
+
+INCLUDE Z_002_ARAC.
